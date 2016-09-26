@@ -1,0 +1,108 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd   
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+http://www.springframework.org/schema/tx 
+http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+<context:component-scan base-package="com.tc.model" />
+<context:component-scan base-package="com.tcs.dao" />
+<context:component-scan base-package="com.tcs.business" />
+<context:component-scan base-package="com.tcs.controllers" />
+<context:annotation-config />
+<mvc:annotation-driven />
+<mvc:interceptors>
+	<bean id="webContentInterceptor" class="org.springframework.web.servlet.mvc.WebContentInterceptor">
+		<property name="cacheSeconds" value="0" />
+		<property name="useExpiresHeader" value="true" />
+		<property name="useCacheControlNoStore" value="true" />
+		<property name="useCacheControlHeader" value="true" />
+	</bean>
+</mvc:interceptors>
+
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<bean id="dataSource" class="org.apache.tomcat.dbcp.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/test?useSSL=false" />
+		<property name="username" value="root" />
+		<property name="password" value="vibhor" />
+		<property name="maxActive" value="10" />
+		<property name="minIdle" value="5" />
+		<property name="maxWait" value="5000" />
+	</bean>
+	
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+	 	<property name="annotatedClasses">
+			<list>
+				<value>com.tcs.model.User</value>
+				<value>com.tcs.model.UserRole</value>
+				<value>com.tcs.controllers.LoginController</value>
+				<value>com.tcs.business.MyUserDetailsService</value>
+				<value>com.tcs.dao.UserDaoImpl</value>
+			</list>
+		</property> 
+		<property name="hibernateProperties">
+			<props>
+				<prop key="dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.current_session_context_class">thread</prop>
+			</props>
+		</property>
+	</bean>
+	
+	
+	<!-- This is the service object that we want to make transactional. -->
+	<!--  <bean id="customService" class="com.tcs.business.MyUserDetailsService" /> -->
+	
+	
+	<!-- HibernateTransactionManager is the PlatformTransactionManager and it needs a SessionFactory
+	to establish connection to the database. -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	
+	
+<!--  	<tx:advice id="txAdvice" transaction-manager="transactionManager">   -->
+	<!-- The 'transaction-manager' attribute here is to set the name of the PlatformTransactionManager bean
+	that is going to drive the transactions. -->
+	<!-- It is not mandatory to configure this attribute here if the name of the PlatformTransactionManager
+	is 'transactionManager'. For every other name, you need to configure the transaction-manager
+	attribute here. -->
+	<!-- 	<tx:attributes>
+			<tx:method name="get*" read-only="true" />  -->
+			<!-- The methods whose name starts with 'get' will only perform the read operation. They
+			will not do any write operation to the database. -->
+	<!--	<tx:method name="find*" read-only="true" />
+			<tx:method name="*" />  -->
+			<!-- All other methods can perform the write operation to the database. Default read-only is false. -->
+	<!--	</tx:attributes>
+	</tx:advice> -->
+	
+	
+	<!-- This ensures that the transactional advice defined by 'txAdvice' executes at the appropriate points
+	in the program. -->
+<!-- <aop:config>
+		
+	</aop:config>    -->
+
+
+</beans>
